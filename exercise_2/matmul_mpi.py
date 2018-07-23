@@ -12,23 +12,29 @@ t0 = time.time()  # start time
 # Open the data file
 with h5py.File('/global/cscratch1/sd/flanusse/data.hdf', 'r', driver='mpio',
                comm=MPI.COMM_WORLD) as f:
+
+    f.atomic = True
     A_dset = f['A']
     B_dset = f['B']
 
     A = np.empty(A_dset.shape, A_dset.dtype)
-    with A_dset.collective:
-        A[:] = A_dset[:]
+    A[:] = A_dset[:]
 
     nx, ny = B_dset.shape
     block_size = ny // size
     start = rank * block_size
     end = (rank + 1) * block_size
     B = np.empty((nx, block_size), B_dset.dtype)
+
+    # Use collective read to load B in parallel
     with B_dset.collective:
         B[:] = B_dset[:, start:end]
 
 C = np.empty((A.shape[0], ny), dtype=np.float32)
 buffer = np.empty((A.shape[0], B.shape[1]), dtype=np.float32)
+
+comm.Barrier()
+t1 = time.time()  # start time
 
 # Compute the local dot product
 C[:, start:end] = np.dot(A, B)
@@ -42,6 +48,14 @@ for i in range(size - 1):
     comm.Sendrecv_replace(buffer, dest=dest_rank, source=source_rank)
     C[:, ((source_rank + i) % size) * block_size:(((source_rank + i) % size) + 1) * block_size] = buffer
 
-t1 = time.time()  # end time
+t2 = time.time()  # end time
 
-print("MPI matrix multiplication took %f ms" % ((t1 - t0) * 1000.))
+if rank == 0:
+    print("MPI matrix multiplication took %f ms" % ((t2 - t1) * 1000.))
+    print("IO took %f ms" % ((t1 - t0) * 1000.))
+
+    # Loading result file
+    with h5py.File('matmul_result.hdf', 'r') as f:
+        Cref = f['C']
+
+    print("l2 distance between matrices: ", np.sum((C - Cref)**2))
