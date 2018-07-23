@@ -1,4 +1,4 @@
-from helper import my_func2
+from func import my_func2
 import numpy as np
 import sys
 
