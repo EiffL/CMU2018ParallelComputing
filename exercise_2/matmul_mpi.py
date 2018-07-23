@@ -56,6 +56,9 @@ if rank == 0:
 
     # Loading result file
     with h5py.File('matmul_result.hdf', 'r') as f:
-        Cref = f['C']
+        Cref = f['C'][:]
 
-    print("l2 distance between matrices: ", np.sum((C - Cref)**2))
+    if np.allclose(C, Cref):
+        print('Success! parallel output matches serial')
+    else:
+        print("max distance between matrices:", np.max(abs(C - Cref)))
