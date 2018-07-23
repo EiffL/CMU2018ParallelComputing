@@ -13,42 +13,40 @@ t0 = time.time()  # start time
 with h5py.File('/global/cscratch1/sd/flanusse/data.hdf', 'r', driver='mpio',
                comm=MPI.COMM_WORLD) as f:
 
-    # Enables atomic operations in MPI for IO, gains in speed
     f.atomic = True
     A_dset = f['A']
     B_dset = f['B']
 
-    # Read first matrix from HDF5 dataset
     A = np.empty(A_dset.shape, A_dset.dtype)
     A[:] = A_dset[:]
 
-    # The following code will only extract a block of size block_size from B
-    # for each process
     nx, ny = B_dset.shape
     block_size = ny // size
     start = rank * block_size
     end = (rank + 1) * block_size
-    # Note the size of the matrix B we allocate here, it's only a subset of the
-    # original matrix
     B = np.empty((nx, block_size), B_dset.dtype)
+
+    # Use collective read to load B in parallel
     with B_dset.collective:
         B[:] = B_dset[:, start:end]
 
-# Allocate an array C to hold the result
 C = np.empty((A.shape[0], ny), dtype=np.float32)
+buffer = np.empty((A.shape[0], B.shape[1]), dtype=np.float32)
 
-# Wait for all IO to be done
 comm.Barrier()
 t1 = time.time()  # start time
 
-# At this point, A contains the full matrix, B contains a different bloc of
-# colummns of the original B matrix for each process
-#### Complete this section of the code to fill C with the full result of A.B ##
+# Compute the local dot product
+C[:, start:end] = np.dot(A, B)
 
+buffer[:] = C[:, rank * block_size:(rank + 1) * block_size]
 
+source_rank = (rank + 1) % size
+dest_rank = (rank - 1) % size
 
-
-###############################################################################
+for i in range(size - 1):
+    comm.Sendrecv_replace(buffer, dest=dest_rank, source=source_rank)
+    C[:, ((source_rank + i) % size) * block_size:(((source_rank + i) % size) + 1) * block_size] = buffer
 
 t2 = time.time()  # end time
 
