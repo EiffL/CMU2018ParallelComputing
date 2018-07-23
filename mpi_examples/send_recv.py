@@ -20,7 +20,7 @@ for i in range(2):
 if rank == 0:
     comm.Recv(buffer, source=1)
     result += buffer
-    print(result)
+    print("The result is %d" % result)
 
 if rank == 1:
     comm.Send(result, dest=0)

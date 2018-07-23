@@ -11,6 +11,6 @@ if rank == 0:
 else:
     A = np.zeros(5, dtype=np.int32)
 
-if rank == 0:
-    comm.Bcast(A, root=0)
+comm.Bcast(A, root=0)
+
 print("I am process %d:" % rank, A)

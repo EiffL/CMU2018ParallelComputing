@@ -12,13 +12,15 @@ else:
     A = None
 
 # Allocate arrays for communication
+# 4 is the size of the chunk that each process will handle
 a = np.empty((4,), dtype=np.int32)
 result = np.array(0, dtype=np.int32)
 
 # Distributes chunks of size 4 accross all the processes
 comm.Scatter(A, a, root=0)
 
-# Perform local sum over chunk of array A
+# Perform local sum over chunk of array A and store the result in a buffer of
+# size 1
 buff = np.array(np.sum(a**2), dtype=np.int32)
 
 # Sums values and shares result with all processes
