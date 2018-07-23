@@ -17,15 +17,19 @@ where `4` is the number of parallel processes.
 To run these examples on a compute node on Cori at NERSC, you would first want
 to submit an interactive job:
 ```
-$ salloc -N 1 -q regular -C haswell -t00:30:00 -L SCRATCH --image=docker:eiffl/nersc-python-mpi:latest
+$ salloc -N 1 -q regular --reservation=desc -C haswell -t00:30:00 -L SCRATCH --image=docker:eiffl/nersc-python-mpi:latest
 ```
 
 Inside the job, use the `srun` command instead of `mpirun`:
 ```
-$ srun -n 4 python hello_world.py
+$ srun -n 8 -c 16 shifter -- python hello_world.py
 ```
-Note that if you want to execute this code inside the shifter image, you should
+From the NERSC documentation:
+```
+The -c option is used to assign MPI tasks to cores in a way that performs optimally  when there are fewer MPI tasks on a node than the number of hardware threads a node can support.  The "-c" value should be set as the "number of hardware threads the node can support" divided by "the number of MPI tasks per node".  For example, on Haswell, there are a total of 32 physical cores, each capable of 2 hyperthreads, so the value of "-c" should be set to 64/#MPI_tasks_per_node = 64/4 = 16 in this example.  
+```
+Note that if you do not want to execute this code inside the shifter image, you should
 use the following:
 ```
-$ srun -n 4 shifter -- python hello_world.py
+$ srun -n 8 -c 16 python hello_world.py
 ```
