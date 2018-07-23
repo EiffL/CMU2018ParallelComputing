@@ -1,6 +1,6 @@
 from multiprocessing import cpu_count
 from multiprocessing import Pool
-from helper import my_func2
+from func import my_func2
 import numpy as np
 import sys
 
