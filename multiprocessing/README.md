@@ -3,33 +3,48 @@ Try different sizes of datasets, specified by the command line input, e.g.
 
 > time python loop-fitG.py  10000
 loop Model: Gaussian1D
+
 Inputs: (u'x',)
+
 Outputs: (u'y',)
-Model set size: 1
+
+Model set size: 
+
 Parameters:
-      amplitude        mean         stddev    
-    ------------- ------------- --------------
-    3.05037167379 1.27749879998 0.809572903661
+
+amplitude        mean         stddev    
+
+3.05037167379 1.27749879998 0.809572903661
 
 real    0m41.657s
+
 user    0m40.358s
+
 sys     0m0.542s
 
 
 
 > time python poolmap-gFit.py 10000
 I have 4 cores here
+
 pool.map: Model: Gaussian1D
+
 Inputs: (u'x',)
+
 Outputs: (u'y',)
+
 Model set size: 1
+
 Parameters:
-      amplitude        mean         stddev    
-    ------------- ------------- --------------
-    3.04340606599 1.29109752995 0.798482260075
+
+amplitude        mean         stddev    
+
+3.04340606599 1.29109752995 0.798482260075
 
 real    0m23.750s
+
 user    1m21.012s
+
 sys     0m1.363s
 
 
