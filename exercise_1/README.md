@@ -2,7 +2,7 @@
 
 To run this script from within an interactive job on Cori:
 ```
-$ srun -n 16 shifter -- python code.py
+$ srun -n 8 -c 16 shifter -- python code.py
 ```
 
  - If `N` is the number of processes, what is this script trying to compute ?  
